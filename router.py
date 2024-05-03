@@ -70,10 +70,10 @@ def view_all_http(page: int = 1) -> list[AnyComponent]:
 def view_all_http(page: int = 1, ip_addr: str | None = None) -> list[AnyComponent]:
     if ip_addr:
         table_configs = get_all_filtr_ip_configurations(ip_addr)
-        print(f"я попал в {page}")
+        # print(f"я попал в {page}")
     else:
         table_configs = get_all_configurations()
-        print("я попал в 2")
+        # print("я попал в 2")
     filter_form_initial = {}
     page_size = 10
     return demo_page(
@@ -106,10 +106,10 @@ def view_all_http(page: int = 1, ip_addr: str | None = None) -> list[AnyComponen
 def view_all_http(page: int = 1, name: str | None = None) -> list[AnyComponent]:
     if name:
         table_configs = get_all_filtr_name_configurations(name)
-        print(f"я попал в {page}")
+        # print(f"я попал в {page}")
     else:
         table_configs = get_all_configurations()
-        print("я попал в 2")
+        # print("я попал в 2")
     filter_form_initial = {}
     page_size = 10
     return demo_page(
