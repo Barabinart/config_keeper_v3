@@ -40,7 +40,8 @@ def config_save(auth: Authdata):
 
 @config_router.get("/get_last")
 def config_get_last(device_ip: str):
-    last_config = Response(content=get_last_configuration(device_ip)['last_config'], media_type="text/plain")
+    last = get_last_configuration(device_ip)
+    last_config = Response(content=last.config, media_type="text/plain")
     return last_config
 
 
