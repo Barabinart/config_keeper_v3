@@ -2,7 +2,8 @@ from fastapi import APIRouter, Request
 
 from fastui.forms import SelectSearchResponse
 from func_config import save_configuration, get_last_configuration, get_all_configurations, \
-    get_all_filtr_ip_configurations, get_list_ip, get_list_name, get_all_filtr_name_configurations
+    get_all_filtr_ip_configurations, get_list_ip, get_list_name, get_all_filtr_name_configurations, \
+    get_one_configuration
 from schemas import Authdata, FilterForm, FilterForm2
 from fastapi.responses import Response
 from fastui import FastUI, AnyComponent, components as c
@@ -55,9 +56,10 @@ def view_all_http(page: int = 1) -> list[AnyComponent]:
         c.Table(
             data=table_configs[(page - 1) * page_size: page * page_size],
             columns=[
-                DisplayLookup(field='device_ip', title="IP адрес:", on_click=GoToEvent(
-                    url=serv_url+'/fastui/config/get_last_one/{device_ip}/'), table_width_percent=20),
-                DisplayLookup(field='device_name', title="Имя устройства:", table_width_percent=30),
+                DisplayLookup(field='id', title="ID:", on_click=GoToEvent(
+                    url=serv_url + '/fastui/config/get_one/{id}/'), table_width_percent=10),
+                DisplayLookup(field='device_ip', title="IP адрес:", table_width_percent=20),
+                DisplayLookup(field='device_name', title="Имя устройства:", table_width_percent=20),
                 DisplayLookup(field='device_type', title="Тип устройства:", table_width_percent=25),
                 DisplayLookup(field='created_at', title="Время сохранения(UTC):", table_width_percent=25),
                 ],
@@ -91,9 +93,10 @@ def view_all_http(page: int = 1, ip_addr: str | None = None) -> list[AnyComponen
         c.Table(
             data=table_configs[(page - 1) * page_size: page * page_size],
             columns=[
-                DisplayLookup(field='device_ip', title="IP адрес:", on_click=GoToEvent(
-                    url=serv_url+'/fastui/config/get_last_one/{device_ip}/'), table_width_percent=20),
-                DisplayLookup(field='device_name', title="Имя устройства:", table_width_percent=30),
+                DisplayLookup(field='id', title="ID:", on_click=GoToEvent(
+                    url=serv_url + '/fastui/config/get_one/{id}/'), table_width_percent=10),
+                DisplayLookup(field='device_ip', title="IP адрес:", table_width_percent=20),
+                DisplayLookup(field='device_name', title="Имя устройства:", table_width_percent=20),
                 DisplayLookup(field='device_type', title="Тип устройства:", table_width_percent=25),
                 DisplayLookup(field='created_at', title="Время сохранения(UTC):", table_width_percent=25),
                 ],
@@ -127,9 +130,10 @@ def view_all_http(page: int = 1, name: str | None = None) -> list[AnyComponent]:
         c.Table(
             data=table_configs[(page - 1) * page_size: page * page_size],
             columns=[
-                DisplayLookup(field='device_ip', title="IP адрес:", on_click=GoToEvent(
-                    url=serv_url+'/fastui/config/get_last_one/{device_ip}/'), table_width_percent=20),
-                DisplayLookup(field='device_name', title="Имя устройства:", table_width_percent=30),
+                DisplayLookup(field='id', title="ID:", on_click=GoToEvent(
+                    url=serv_url + '/fastui/config/get_one/{id}/'), table_width_percent=10),
+                DisplayLookup(field='device_ip', title="IP адрес:", table_width_percent=20),
+                DisplayLookup(field='device_name', title="Имя устройства:", table_width_percent=20),
                 DisplayLookup(field='device_type', title="Тип устройства:", table_width_percent=25),
                 DisplayLookup(field='created_at', title="Время сохранения(UTC):", table_width_percent=25),
                 ],
@@ -157,6 +161,23 @@ def get_last_one_http(device_ip: str) -> list[AnyComponent]:
             ),
         )
 
+@view_config_router.get("/get_one/{id}/", response_model=FastUI, response_model_exclude_none=True)
+def get_one_http(id: int) -> list[AnyComponent]:
+    one = get_one_configuration(id)
+    if one.id == 0:
+        one_device_type = "не найден в БД"
+    else:
+        one_device_type = one.device_type.value
+    return demo_page(
+        c.Heading(text=f"IP: {one.device_ip}", level=4),
+        c.Heading(text=f"Устройство: {one.device_name}", level=5),
+        c.Heading(text=f"Производитель: {one_device_type}", level=5),
+        c.Heading(text=f"Время сохранения в БД (UTC): {one.created_at}", level=5),
+        c.Code(
+            # language='python',
+            text=one.config,
+            ),
+        )
 
 @view_forms_router.get('/search_ip', response_model=SelectSearchResponse)
 async def search_view(request: Request, q: str) -> SelectSearchResponse:

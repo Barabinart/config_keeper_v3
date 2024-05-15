@@ -7,7 +7,7 @@ pip freeze > requirements.txt
 
 # Docker
 [//]: # (клонировать проект)
-git clone https://github.com/Barabinart/config_keeper_v1.git
+git clone https://github.com/Barabinart/config_keeper_v3.git
 
 [//]: # (не забыть сменить владельца)
 chown -R art:art config_keeper_v1/
@@ -20,4 +20,7 @@ rm /etc/nginx/sites-enabled/default
 service nginx reload
 
 [//]: # (запустить докер контейнер с вольюмом для хранения БД)
-docker run -v config_keeper_v1_volume:/db -p80:80 config_keeper_v1
+docker run -v config_keeper_v3_volume:/db -p80:80 config_keeper_v3
+
+[//]: # (обновить образ с гита)
+git pull https://github.com/Barabinart/config_keeper_v3.git

@@ -53,6 +53,7 @@ def get_last_configuration(device_ip):
             ConfigurationOrm.created_at.desc()).first()
         if last_config_orm:
             last_config = Configuration(
+                id=last_config_orm.id,
                 device_type=last_config_orm.device_type.value,
                 device_name=last_config_orm.device_name,
                 device_ip=last_config_orm.device_ip,
@@ -63,6 +64,23 @@ def get_last_configuration(device_ip):
         else:
             return Configuration()
 
+def get_one_configuration(id):
+    with new_session() as session:
+        one_config_orm = session.query(ConfigurationOrm).filter(
+            ConfigurationOrm.id == id).first()
+        # print(f'one_config_orm={one_config_orm}')
+        if one_config_orm:
+            one_config = Configuration(
+                id=one_config_orm.id,
+                device_type=one_config_orm.device_type.value,
+                device_name=one_config_orm.device_name,
+                device_ip=one_config_orm.device_ip,
+                config=one_config_orm.config,
+                created_at=one_config_orm.created_at.strftime('%d %B %Y %H:%M'),
+            )
+            return one_config
+        else:
+            return Configuration()
 
 # Метод выдачи списка всех конфигураций
 def get_all_configurations():
@@ -76,6 +94,7 @@ def get_all_configurations():
         else:
             for config_orm in configurations_orm:
                 config = Configuration(
+                    id=config_orm.id,
                     device_type=config_orm.device_type.value,
                     device_name=config_orm.device_name,
                     device_ip=config_orm.device_ip,
@@ -99,6 +118,7 @@ def get_all_filtr_ip_configurations(device_ip):
         else:
             for config_orm in configurations_orm:
                 config = Configuration(
+                    id=config_orm.id,
                     device_type=config_orm.device_type.value,
                     device_name=config_orm.device_name,
                     device_ip=config_orm.device_ip,
@@ -133,6 +153,7 @@ def get_all_filtr_name_configurations(name):
         else:
             for config_orm in configurations_orm:
                 config = Configuration(
+                    id=config_orm.id,
                     device_type=config_orm.device_type.value,
                     device_name=config_orm.device_name,
                     device_ip=config_orm.device_ip,

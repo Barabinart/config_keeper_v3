@@ -23,6 +23,7 @@ class Authdata(BaseModel):
 
 
 class Configuration(BaseModel):
+    id: int = 0
     device_type: TypesOfDevices = "no"
     device_name: str = "не найдено в БД"
     device_ip: str = "не найден в БД"
