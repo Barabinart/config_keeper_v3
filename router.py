@@ -3,15 +3,19 @@ from fastapi import APIRouter, Request
 from fastui.forms import SelectSearchResponse
 from func_config import save_configuration, get_last_configuration, get_all_configurations, \
     get_all_filtr_ip_configurations, get_list_ip, get_list_name, get_all_filtr_name_configurations, \
-    get_one_configuration
+    get_one_configuration, get_diff, get_diff_last
 from schemas import Authdata, FilterForm, FilterForm2
 from fastapi.responses import Response
 from fastui import FastUI, AnyComponent, components as c
 from fastui.components.display import DisplayLookup
-from fastui.events import GoToEvent
+from fastui.events import GoToEvent, BackEvent
 from dotenv import load_dotenv
 import os
 from shared import demo_page, tabs
+from fastapi.templating import Jinja2Templates
+
+# загрузка шаблона HTML-страницы для шаблонизатора
+templates = Jinja2Templates(directory="templates")
 
 load_dotenv()
 serv_url = os.getenv("SERVER_URL")
@@ -44,6 +48,17 @@ def config_get_last(device_ip: str):
     last = get_last_configuration(device_ip)
     last_config = Response(content=last.config, media_type="text/plain")
     return last_config
+
+
+@config_router.get("/get_diff/{device_id}")
+def config_get_diff(request: Request, device_id: int):
+    diff = get_diff(device_id)
+    return templates.TemplateResponse("differ.html", {"request": request, "diff": diff})
+
+@config_router.get("/get_diff_last/{device_ip}")
+def config_get_diff(request: Request, device_ip: str):
+    diff = get_diff_last(device_ip)
+    return templates.TemplateResponse("differ.html", {"request": request, "diff": diff})
 
 
 @view_config_router.get("/view_all/", response_model=FastUI, response_model_exclude_none=True)
@@ -151,34 +166,44 @@ def get_last_one_http(device_ip: str) -> list[AnyComponent]:
     else:
         last_device_type = last.device_type.value
     return demo_page(
+        c.Link(components=[c.Text(text='<- Назад')], on_click=BackEvent()),
         c.Heading(text=f"IP: {last.device_ip}", level=4),
         c.Heading(text=f"Устройство: {last.device_name}", level=5),
         c.Heading(text=f"Производитель: {last_device_type}", level=5),
         c.Heading(text=f"Время сохранения в БД (UTC): {last.created_at}", level=5),
+        c.Button(text='Сравнить с предыдущей конфигурацией', named_style='warning', on_click=GoToEvent(
+            url=serv_url + '/config/get_diff_last/'+device_ip+'/'), class_name='+ ms-2'),
         c.Code(
             # language='python',
             text=last.config,
             ),
         )
 
-@view_config_router.get("/get_one/{id}/", response_model=FastUI, response_model_exclude_none=True)
-def get_one_http(id: int) -> list[AnyComponent]:
-    one = get_one_configuration(id)
+
+# для показа одной конфигурации из БД по ID
+@view_config_router.get("/get_one/{device_id}/", response_model=FastUI, response_model_exclude_none=True)
+def get_one_http(device_id: int) -> list[AnyComponent]:
+    one = get_one_configuration(device_id)
     if one.id == 0:
         one_device_type = "не найден в БД"
     else:
         one_device_type = one.device_type.value
     return demo_page(
+        c.Link(components=[c.Text(text='<- Назад')], on_click=BackEvent()),
         c.Heading(text=f"IP: {one.device_ip}", level=4),
         c.Heading(text=f"Устройство: {one.device_name}", level=5),
         c.Heading(text=f"Производитель: {one_device_type}", level=5),
         c.Heading(text=f"Время сохранения в БД (UTC): {one.created_at}", level=5),
+        c.Button(text='Сравнить с предыдущей конфигурацией', named_style='warning', on_click=GoToEvent(
+            url=serv_url + '/config/get_diff/'+str(device_id)+'/'), class_name='+ ms-2'),
         c.Code(
             # language='python',
             text=one.config,
             ),
         )
 
+
+# для вывода формы поиска со списком IP
 @view_forms_router.get('/search_ip', response_model=SelectSearchResponse)
 async def search_view(request: Request, q: str) -> SelectSearchResponse:
     list_ip = get_list_ip(q)
@@ -188,6 +213,7 @@ async def search_view(request: Request, q: str) -> SelectSearchResponse:
     return SelectSearchResponse(options=options)
 
 
+# для вывода формы поиска со списком имен устройств
 @view_forms_router.get('/search_name', response_model=SelectSearchResponse)
 async def search_view(request: Request, q: str) -> SelectSearchResponse:
     list_name = get_list_name(q)

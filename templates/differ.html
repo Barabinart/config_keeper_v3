@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Результат сравнения конфигураций</title>
+</head>
+<body>
+<a href="javascript:history.back()">&lt- Назад</a>
+<h1>Результат сравнения конфигураций:</h1>
+<pre style="font-size: 20px; line-height: 0.3;">
+{% for d in diff %}
+    {% if d.startswith('-') %}
+    <span style="text-decoration: line-through; background-color: Khaki;">{{ d }}</span>
+    {% elif d.startswith('+') %}
+    <span style="background-color: PaleGreen;">{{ d }}</span>
+    {% else %}
+    <span>{{ d }}</span>
+    {% endif %}
+{% endfor %}
+</pre>
+</body>
+</html>

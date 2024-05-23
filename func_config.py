@@ -2,7 +2,7 @@ from netmiko import ConnectHandler
 from sqlalchemy import distinct
 from database import new_session, ConfigurationOrm
 from schemas import Authdata, Configuration
-
+import difflib
 
 # метод для сохранения конфигурации
 def save_configuration(auth: Authdata):
@@ -64,11 +64,11 @@ def get_last_configuration(device_ip):
         else:
             return Configuration()
 
-def get_one_configuration(id):
+
+def get_one_configuration(device_id):
     with new_session() as session:
         one_config_orm = session.query(ConfigurationOrm).filter(
-            ConfigurationOrm.id == id).first()
-        # print(f'one_config_orm={one_config_orm}')
+            ConfigurationOrm.id == device_id).first()
         if one_config_orm:
             one_config = Configuration(
                 id=one_config_orm.id,
@@ -81,6 +81,54 @@ def get_one_configuration(id):
             return one_config
         else:
             return Configuration()
+
+
+# возвращает различая конфигураций: парвая- соответствует полученному ID и предыдущая этого же устройства
+def get_diff(device_id):
+    with new_session() as session:
+        first_config_orm = session.query(ConfigurationOrm).filter(
+            ConfigurationOrm.id == device_id).first()
+        if first_config_orm:
+            first_config = first_config_orm.config
+            # print(first_config_orm.id)
+            configurations_orm = session.query(ConfigurationOrm).filter(
+                ConfigurationOrm.device_ip == first_config_orm.device_ip).order_by(
+                ConfigurationOrm.id.desc()).all()
+
+            for config_orm in configurations_orm:
+                if config_orm.id < device_id:
+                    two_config = config_orm.config
+                    # print(config_orm.id)
+                    d = difflib.Differ()
+                    diff = list(d.compare(first_config.splitlines(), two_config.splitlines()))
+                    return diff
+            return ["* В БД нет предыдущей конфигурации для этого устройства."]
+        else:
+            return ["* Конфигурация не найдена."]
+
+
+# возвращает различая конфигураций: первая - соответствует последней по полученному IP и предыдущая этого же устройства
+def get_diff_last(device_ip):
+    with new_session() as session:
+        first_config_orm = session.query(ConfigurationOrm).filter(
+            ConfigurationOrm.device_ip == device_ip).order_by(
+            ConfigurationOrm.created_at.desc()).first()
+        if first_config_orm:
+            first_config = first_config_orm.config
+            # print(first_config_orm.id)
+            two_config_orm = session.query(ConfigurationOrm).filter(
+            ConfigurationOrm.device_ip == device_ip).order_by(
+            ConfigurationOrm.created_at.desc()).offset(1).first()
+            if two_config_orm:
+                two_config = two_config_orm.config
+                # print(two_config_orm.id)
+                d = difflib.Differ()
+                diff = list(d.compare(first_config.splitlines(), two_config.splitlines()))
+                return diff
+            return ["* В БД нет предыдущей конфигурации для этого устройства."]
+        else:
+            return ["* Конфигурация не найдена."]
+
 
 # Метод выдачи списка всех конфигураций
 def get_all_configurations():
