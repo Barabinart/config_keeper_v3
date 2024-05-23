@@ -1,4 +1,4 @@
-# Config_keeper_v1
+# Config_keeper_v3
 # запустить web сервер
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
@@ -10,10 +10,10 @@ pip freeze > requirements.txt
 git clone https://github.com/Barabinart/config_keeper_v3.git
 
 [//]: # (не забыть сменить владельца)
-chown -R art:art config_keeper_v1/
+chown -R art:art config_keeper_v3/
 
 [//]: # ()
-docker build . --tag config_keeper_v1
+docker build . --tag config_keeper_v3
 
 [//]: # (если занят 80 порт)
 rm /etc/nginx/sites-enabled/default
