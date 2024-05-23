@@ -100,7 +100,7 @@ def get_diff(device_id):
                     two_config = config_orm.config
                     # print(config_orm.id)
                     d = difflib.Differ()
-                    diff = list(d.compare(first_config.splitlines(), two_config.splitlines()))
+                    diff = list(d.compare(two_config.splitlines(), first_config.splitlines()))
                     return diff
             return ["* В БД нет предыдущей конфигурации для этого устройства."]
         else:
@@ -123,7 +123,7 @@ def get_diff_last(device_ip):
                 two_config = two_config_orm.config
                 # print(two_config_orm.id)
                 d = difflib.Differ()
-                diff = list(d.compare(first_config.splitlines(), two_config.splitlines()))
+                diff = list(d.compare(two_config.splitlines(), first_config.splitlines()))
                 return diff
             return ["* В БД нет предыдущей конфигурации для этого устройства."]
         else:
